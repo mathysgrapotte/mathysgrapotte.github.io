@@ -5,12 +5,16 @@ entries:
   - title: info
     entries:
       - title: I am Mathys, a postdoctoral researcher at CRG, and this is my personal website.
-        url: https://www.linkedin.com/in/mathys-grapotte-167004130/
       - title: here, you will read about open science software, and making deep learning work in the bio world.
+      - title: linkedin
+        url: https://www.linkedin.com/in/mathys-grapotte-167004130/
+      - title: github
+        url: https://github.com/mathysgrapotte
+      
 
-  - title: all posts
-    post_list:
-      limit: 5
-      show_more: true
-      show_more_text: See archive...
-      show_more_url: archive.html
+#  - title: all posts
+#    post_list:
+#      limit: 5
+#      show_more: true
+#      show_more_text: See archive...
+#      show_more_url: archive.html
