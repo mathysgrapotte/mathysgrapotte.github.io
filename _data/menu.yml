@@ -10,7 +10,10 @@ entries:
         url: https://www.linkedin.com/in/mathys-grapotte-167004130/
       - title: github
         url: https://github.com/mathysgrapotte
-      
+
+  - title: posts
+    entries:
+      - title: coming soon.
 
 #  - title: all posts
 #    post_list:
