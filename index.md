@@ -1,8 +1,3 @@
 ---
-layout: default
-title: "Home"
+layout: home
 ---
-
-# Welcome to My Markdown Website
-
-This site is built entirely using Markdown and Jekyll. 
