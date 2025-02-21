@@ -9,5 +9,9 @@ gem "bigdecimal"
 gem "base64"
 gem "logger"
 gem "jekyll"
+gem "jekyll-feed"
+gem "jekyll-seo-tag"
+gem "jektex"
+gem "jekyll-remote-theme"
 
 gemspec
