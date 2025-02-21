@@ -3,5 +3,5 @@ description: "A markdown only website built with Jekyll."
 baseurl: ""
 url: ""
 markdown: kramdown
-theme: no-style-please
+remote-theme: no-style-please
 plugins: [] 
