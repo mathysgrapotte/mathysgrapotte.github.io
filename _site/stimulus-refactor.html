@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>Stimulus refactor</title>
+
+  <link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="I like bio DL!" /><link rel="shortcut icon" type="image/x-icon" href="/logo.png" />
+  <link rel="stylesheet" href="/assets/css/main.css" />
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.css" integrity="sha384-OH8qNTHoMMVNVcKdKewlipV4SErXqccxxlg6HC9Cwjr5oZu2AdBej1TndeCirael" crossorigin="anonymous">
+
+</head>
+<body a="auto">
+    <main class="page-content" aria-label="Content">
+      <div class="w">
+        <a href="/">..</a><article>
+  <p class="post-meta">
+    <time datetime="2025-02-24 00:00:00 +0100">2025-02-24</time>
+  </p>
+  
+  <h1>Stimulus refactor</h1>
+
+  <h2 id="context">Context</h2>
+
+<p>stimulus separates data processing in three components:</p>
+<ul>
+  <li>split (into train/validation/test)</li>
+  <li>transform (modifications to raw data - downsampling for example)</li>
+  <li>encode (raw data to pytorch tensors)</li>
+</ul>
+
+<p>Some key observations considering the input data (example adapted from <a href="https://www.kaggle.com/datasets/yasserh/titanic-dataset" target="_blank">kaggle</a>):</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>passenger_id</th>
+      <th>survived</th>
+      <th>pclass</th>
+      <th>sex</th>
+      <th>age</th>
+      <th>sibsp</th>
+      <th>parch</th>
+      <th>fare</th>
+      <th>embarked</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>0</td>
+      <td>3</td>
+      <td>male</td>
+      <td>22.0</td>
+      <td>1</td>
+      <td>0</td>
+      <td>7.25</td>
+      <td>S</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>1</td>
+      <td>1</td>
+      <td>female</td>
+      <td>38.0</td>
+      <td>1</td>
+      <td>0</td>
+      <td>71.2833</td>
+      <td>C</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>1</td>
+      <td>3</td>
+      <td>female</td>
+      <td>26.0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>7.925</td>
+      <td>S</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>1</td>
+      <td>1</td>
+      <td>female</td>
+      <td>35.0</td>
+      <td>1</td>
+      <td>0</td>
+      <td>53.1</td>
+      <td>S</td>
+    </tr>
+  </tbody>
+</table>
+
+<ul>
+  <li>Split needs to be called on a specific (group of) column(s).</li>
+  <li>Column types vary, thus transforms are column-specific.</li>
+  <li>Likewise for encoding.</li>
+  <li>Columns serve different purposes:
+    <ul>
+      <li>input (e.g., <code class="language-plaintext highlighter-rouge">age</code>)</li>
+      <li>target (<code class="language-plaintext highlighter-rouge">survived</code>)</li>
+      <li>meta-data (<code class="language-plaintext highlighter-rouge">passenger_id</code>)</li>
+    </ul>
+  </li>
+</ul>
+
+<p>Since stimulus is thought to be a command line tool first, these bits and pieces are defined in an external .yaml configuration file. 
+For encoders, it looks like this:</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">columns</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">column_name</span><span class="pi">:</span> <span class="s">fare</span> 
+    <span class="na">column_type</span><span class="pi">:</span> <span class="s">input</span>
+    <span class="na">data_type</span><span class="pi">:</span> <span class="s">float</span>
+    <span class="na">encoder</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">NumericEncoder</span>
+        <span class="na">params</span><span class="pi">:</span>
+</code></pre></div></div>
+
+<p>Here, we are defining that <code class="language-plaintext highlighter-rouge">fare</code> is an input column, and need to be encoded using <a href="https://mathysgrapotte.github.io/stimulus-py/reference/stimulus/data/encoding/encoders/#stimulus.data.encoding.encoders.NumericEncoder" target="_blank">NumericEncoder</a></p>
+
+<p>We do the same for transforms:</p>
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">transforms</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">transformation_name</span><span class="pi">:</span> <span class="s">noise</span>
+    <span class="na">columns</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">column_name</span><span class="pi">:</span> <span class="s">age</span>
+        <span class="na">transformations</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">GaussianNoise</span>
+            <span class="na">params</span><span class="pi">:</span>
+              <span class="na">std</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">0.1</span><span class="pi">,</span> <span class="nv">0.2</span><span class="pi">,</span> <span class="nv">0.3</span><span class="pi">]</span>
+      <span class="pi">-</span> <span class="na">column_name</span><span class="pi">:</span> <span class="s">fare</span>
+        <span class="na">transformations</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">GaussianNoise</span>
+            <span class="na">params</span><span class="pi">:</span>
+              <span class="na">std</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">0.1</span><span class="pi">,</span> <span class="nv">0.2</span><span class="pi">,</span> <span class="nv">0.3</span><span class="pi">]</span>
+</code></pre></div></div>
+
+<p>Here we apply <a href="https://mathysgrapotte.github.io/stimulus-py/reference/stimulus/data/transform/data_transformation_generators/#stimulus.data.transform.data_transformation_generators.GaussianNoise" target="_blank">GaussianNoise</a> to two different columns with three different standard deviation parameters.</p>
+
+<p>and we define the split parameters as such :</p>
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">split</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">split_method</span><span class="pi">:</span> <span class="s">RandomSplit</span>
+    <span class="na">split_input_columns</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">age</span><span class="pi">]</span>
+    <span class="na">params</span><span class="pi">:</span>
+      <span class="na">split</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">0.7</span><span class="pi">,</span> <span class="nv">0.15</span><span class="pi">,</span> <span class="nv">0.15</span><span class="pi">]</span>
+</code></pre></div></div>
+
+<p>We use a <a href="https://mathysgrapotte.github.io/stimulus-py/reference/stimulus/data/splitters/#stimulus.data.splitters.RandomSplit" target="_blank">RandomSplit</a> splitter on the <code class="language-plaintext highlighter-rouge">age</code> column, separating the data into 70% for training, 15% for validation and 15% for testing.</p>
+
+<h2 id="interfacing-configuration-files-with-the-data-the-old-way">Interfacing configuration files with the data, the old way</h2>
+
+<p>The configuration file serves as an interface between the data and the code, for this to happen correctly, we need to:</p>
+
+<ul>
+  <li>General
+    <ol>
+      <li>understand which columns are input, meta-data or target(label).</li>
+    </ol>
+  </li>
+  <li>Encoders
+    <ol>
+      <li>link the encoder with its column.</li>
+      <li>fetch the proper encoder from the codebase.</li>
+      <li>use the right encoder on the right column when considering the full dataset, taking care of input, meta-data or target considerations.</li>
+    </ol>
+  </li>
+  <li>Transforms
+    <ol>
+      <li>link transforms with their columns.</li>
+      <li>fetch the proper transforms from the codebase.</li>
+      <li>remember the order of transforms within a group (e.g. the <code class="language-plaintext highlighter-rouge">noise</code> group defined above).</li>
+      <li>use the right transform group on the right columns when considering the full dataset.</li>
+    </ol>
+  </li>
+  <li>Split
+    <ol>
+      <li>fetch the proper splitter from the codebase.</li>
+      <li>use it on the right column or set of columns.</li>
+    </ol>
+  </li>
+</ul>
+
+<p>Until now, we dealt with the problem by providing three levels of abstractions.</p>
+
+<ol>
+  <li>Loaders, <a href="https://mathysgrapotte.github.io/stimulus-py/reference/stimulus/data/loaders/#stimulus.data.loaders.EncoderLoader" target="_blank">for example, EncoderLoader</a> includes boilerplate code to load from the configuration file, fetch the proper encoder from the codebase and get its <code class="language-plaintext highlighter-rouge">encode_all</code> method.</li>
+  <li>Managers, <a href="https://mathysgrapotte.github.io/stimulus-py/reference/stimulus/data/data_handlers/#stimulus.data.data_handlers.EncodeManager">for example, EncodeManager</a>, holds the logic of which encoder to use on which column and boilerplate code to apply encoders to a subset of the dataframe.</li>
+  <li>Finally, the <a href="https://mathysgrapotte.github.io/stimulus-py/reference/stimulus/data/data_handlers/#stimulus.data.data_handlers.DatasetHandler">dataset handler</a> main class, split into <code class="language-plaintext highlighter-rouge">DatasetLoader</code> and <code class="language-plaintext highlighter-rouge">DatasetProcessor</code>, contains boilerplate code to load the data from disk, apply transformations and split, and feed the data to the network as a dictionary of PyTorch tensors.</li>
+</ol>
+
+<p>If you would need to visualize it, would look like this:</p>
+
+<div style="width: 60vw; margin-left: calc(-27vw + 50%); margin-right: calc(-25vw + 50%); text-align: center;">
+<img src="https://mermaid.ink/svg/pako:eNptlOFrnDAYxv8VSb-mrF57PerKYMyDGxg2UAab9sM7E0-pJpLoh9Hr_75oEk-twoF53-eX5PHJ5Q3lgjIUoLOEtvSSMOOeflT_1xQiAZRJZarDc4zSIx8YaVov3u3tl0vBGFUX70iuwiRKEwlcFUI2G9JkJo2jNG7rqtuQxVbGOM34am8EOJwXmwtJGkIHinW2Z-bKBS-q88ULTzMfxPpYKNlY0uuGZi8zO-RqZ4F0rjpQP6XImVJiBsbEmFtAaqhsAFs2v3_6MXN4cg5PwGnt5qt4yeTmjAZai9burpSbfiq8PGvWu7RmPH4brZihZi7HbWRI9CetP_j7NoaS_v5KIvs-QjpD249_pfo3rmY7Nr6Q2FTrvuGeC9edPdudYpkEyVIwRjA1h3Nm2nkNSoWs8OrRiVdUdR3c-LAvDoBVJ8UrC27uYJff088rojERW-TpYf_gP03Io3__6N-tkdKkaJEd3cPuMCE-aOQwR_TfDycRjiO7u0WL4ITgmGBt0O5k3g5P-Joytqm59RFGDZMNVFRfBW8DlqGuZA3LUKBfKcjXDGX8Xeug70T8j-co6GTPMJKiP5du0LcUOhZWoI9u44ot8D9C6GEBtdJjRqtOSGLunfH6ef8P-8t0hA" />
+</div>
+
+<p>This outlines two main problems:</p>
+<ol>
+  <li>Three levels of abstraction, the codebase is too hard to understand.</li>
+  <li>Tight coupling between the various classes, if you change one module, everything breaks.</li>
+</ol>
+
+<p>point 1. is fairly easy to understand by looking at the above diagram, so let’s discuss point 2.</p>
+
+<p>point 2. is best understood by looking at the current <a href="https://mathysgrapotte.github.io/stimulus-py/reference/stimulus/data/handlertorch/#stimulus.data.handlertorch.TorchDataset" target="_blank">TorchDataset class</a> which interfaces the data with the neural network.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">TorchDataset</span><span class="p">(</span><span class="n">torch</span><span class="p">.</span><span class="n">utils</span><span class="p">.</span><span class="n">data</span><span class="p">.</span><span class="n">Dataset</span><span class="p">):</span>
+    <span class="s">"""Class for creating a torch dataset."""</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">config_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">csv_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">encoder_loader</span><span class="p">:</span> <span class="n">loaders</span><span class="p">.</span><span class="n">EncoderLoader</span><span class="p">,</span>
+        <span class="n">split</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="s">"""Initialize the TorchDataset.
+
+        Args:
+            config_path: Path to the configuration file
+            csv_path: Path to the CSV data file
+            encoder_loader: Encoder loader instance
+            split: Optional tuple containing split information
+        """</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">loader</span> <span class="o">=</span> <span class="n">data_handlers</span><span class="p">.</span><span class="n">DatasetLoader</span><span class="p">(</span>
+            <span class="n">config_path</span><span class="o">=</span><span class="n">config_path</span><span class="p">,</span>
+            <span class="n">csv_path</span><span class="o">=</span><span class="n">csv_path</span><span class="p">,</span>
+            <span class="n">encoder_loader</span><span class="o">=</span><span class="n">encoder_loader</span><span class="p">,</span>
+            <span class="n">split</span><span class="o">=</span><span class="n">split</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">loader</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="p">.</span><span class="n">loader</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+</code></pre></div></div>
+<p>This function, which should be simple in its implementation, will perform lots of things under the hood:</p>
+<ul>
+  <li>load the data from disk using the proper split (train/validation/test) if needed</li>
+  <li>load the configuration file defined above</li>
+  <li>make sure encoder loader fits</li>
+  <li>return the data in a format that can be used by the neural network</li>
+</ul>
+
+<p>If any of those steps is changed somewhere else in the code (for instance, <code class="language-plaintext highlighter-rouge">DatasetLoader</code> config path argument is renamed), TorchDataset will break. Every little change requires hours of debugging.</p>
+
+<p>Since scientific code requires to be extremely flexible (to try the new cool things), we want to minimize the time it takes to implement a change in the codebase.</p>
+
+<h2 id="interfacing-configuration-files-with-the-data-the-new-way">Interfacing configuration files with the data, the new way</h2>
+
+<p>The first idea here is to remove as many abstractions as possible. <code class="language-plaintext highlighter-rouge">Encoders</code>, <code class="language-plaintext highlighter-rouge">Transforms</code>, and <code class="language-plaintext highlighter-rouge">Splitters</code> are non-compressible core functionalities, same goes with <code class="language-plaintext highlighter-rouge">DatasetHandler</code> classes.</p>
+
+<p>Focusing on native python data structures (such as dictionaries, lists, etc.) will make the codebase readable (our contributors understand dictionaries, not necessarly <code class="language-plaintext highlighter-rouge">DatasetManagers</code>).</p>
+
+<p>Think about it in this way: the more concepts contributors need to learn, the more likely they will quit before the first PR.</p>
+
+<p>For this, we need to rethink the way we do I/O management in between our elements. Config parsing has to be outsourced to a dedicated module, which shall output simple, native python objects. <code class="language-plaintext highlighter-rouge">DatasetHandler</code> classes will expect those objects as input, and will not do the parsing themselves (one class should do one thing):</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">DatasetLoader</span><span class="p">(</span><span class="n">DatasetHandler</span><span class="p">):</span>
+    <span class="s">"""Class for loading dataset and passing it to the deep learning model."""</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">encoders</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">encoders_module</span><span class="p">.</span><span class="n">AbstractEncoder</span><span class="p">],</span>
+        <span class="n">input_columns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">label_columns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">meta_columns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">csv_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">split</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="p">...</span>
+</code></pre></div></div>
+
+<p>Here, instead of having loaders and managers, we load needed information directly to the <code class="language-plaintext highlighter-rouge">DatasetHandler</code> class, in simple, native python objects. For example, the class itself is not expected to find out which columns are input, labels or meta-data; this was done beforehand.</p>
+
+<p>Notice as well, that the encoders are expected in a simple dictionary of format <code class="language-plaintext highlighter-rouge">{column_name: encoder_instance}</code>. When needing to find an encoder for a specific column, we only need to access the dictionary with the name of the column that we want to encode as the key.</p>
+
+<p>This allows us to completely decouple the <code class="language-plaintext highlighter-rouge">DatasetHandler</code> class from the configuration file parsing. If the configuration file format changes, DatasetHandler does not care about it (as it always expects objects to be already parsed), which addresses point 2!</p>
+
+<p>To further explain how we decouple the codebase, lets rewrite the <code class="language-plaintext highlighter-rouge">TorchDataset</code> class:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">TorchDataset</span><span class="p">(</span><span class="n">torch</span><span class="p">.</span><span class="n">utils</span><span class="p">.</span><span class="n">data</span><span class="p">.</span><span class="n">Dataset</span><span class="p">):</span>
+    <span class="s">"""Class for creating a torch dataset."""</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">loader</span><span class="p">:</span> <span class="n">DatasetLoader</span><span class="p">,</span> 
+        <span class="c1"># loader is initialized outside of TorchDataset
+</span>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="s">"""Initialize the TorchDataset.
+
+        Args:
+            loader: A DatasetLoader instance
+        """</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">loader</span> <span class="o">=</span> <span class="n">loader</span>
+
+    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">loader</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="p">.</span><span class="n">loader</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+</code></pre></div></div>
+
+<p>Here, as long as <code class="language-plaintext highlighter-rouge">DatasetLoader</code> implements the <code class="language-plaintext highlighter-rouge">__getitem__</code> and <code class="language-plaintext highlighter-rouge">__len__</code> methods, TorchDataset will work. Changing the inner working of <code class="language-plaintext highlighter-rouge">DatasetLoader</code> will not affect <code class="language-plaintext highlighter-rouge">TorchDataset</code>!</p>
+
+<p>Altogether, those changes make the codebase intuitive, and the data flows streamlined, if we rebuild the class diagram, it would look like this:</p>
+
+<div style="width: 40vw; margin-left: calc(-20vw + 50%); margin-right: calc(-25vw + 50%); text-align: center;">
+<img src="https://mermaid.ink/svg/pako:eNp1kk2PwiAQhv8KwWtNrJ-xu9mL3cSLiUmNh7V7mC1gGykQoIeN-t-Xlqq1GznBzPPOF3PGmSQUR_ioQeVoF6cCuWOqH29YScGK4xa0odq76rPaHrwDec83Gg4_Lqq-mwv6FHVMbbr8E7DTIAyTunyNJIoX9h6DCpKKXmUxWDDUrkEQ3q0tXh-eXb646kVp8bpxg3IJX9XWZ56La4n3GuESiANWyf6fmlFauzYuP__XVcbBmJgy1PSvESs4jwYhzNgCAmO1PNFoMIJxNiFvPUXuu2wlYzKD8eIuCWEyDxd9CXHzafnldDYNl3d-Hjp-1OXrj1Gd7_dG11PeHXyLJvvgNuHgMcjgNq8mMQ5wSXUJBXFbd67lKbY5LWmKI3cloE8pTsXVcVBZmfyKDEdWVzTAWlbH_PaolItG4wLcOpQ4YsCNsyoQX1I-3pQUVuqN3_Fm1a9_Io_x4Q" />
+</div>
+
+<p>Way better right ?</p>
+
+<p>You can follow the refactoring effort on the <a href="https://github.com/users/mathysgrapotte/projects/2" target="_blank">project board</a>.</p>
+
+</article>
+      </div>
+    </main>
+  </body>
+</html>

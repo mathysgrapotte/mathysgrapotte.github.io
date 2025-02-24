@@ -3,13 +3,10 @@
   filter: invert(1);
   img {
     filter: invert(1);
-
     &.ioda { filter: invert(0); }
   }
   .emoji { filter: invert(1); }
-  iframe {
-    filter: invert(1);
-  }
+  iframe { filter: invert(1); }
 }
 
 body[a="dark"] { @include dark-appearance; }

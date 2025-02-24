@@ -1,0 +1,24 @@
+current directory: /home/mathys/projects/mathysgrapotte.github.io/vendor/bundle/ruby/3.4.0+1/gems/json-2.10.1/ext/json/ext/parser
+/home/mathys/.rbenv/versions/3.4.0/bin/ruby extconf.rb
+checking for rb_enc_interned_str() in ruby.h... yes
+checking for rb_hash_new_capa() in ruby.h... yes
+checking for rb_hash_bulk_insert() in ruby.h... yes
+checking for rb_category_warn() in ruby.h... yes
+checking for strnlen() in string.h... yes
+checking for whether -std=c99 is accepted as CFLAGS... yes
+creating Makefile
+
+current directory: /home/mathys/projects/mathysgrapotte.github.io/vendor/bundle/ruby/3.4.0+1/gems/json-2.10.1/ext/json/ext/parser
+make DESTDIR\= sitearchdir\=./.gem.20250224-31420-bzbfq4 sitelibdir\=./.gem.20250224-31420-bzbfq4 clean
+
+current directory: /home/mathys/projects/mathysgrapotte.github.io/vendor/bundle/ruby/3.4.0+1/gems/json-2.10.1/ext/json/ext/parser
+make DESTDIR\= sitearchdir\=./.gem.20250224-31420-bzbfq4 sitelibdir\=./.gem.20250224-31420-bzbfq4
+compiling parser.c
+linking shared-object json/ext/parser.so
+
+current directory: /home/mathys/projects/mathysgrapotte.github.io/vendor/bundle/ruby/3.4.0+1/gems/json-2.10.1/ext/json/ext/parser
+make DESTDIR\= sitearchdir\=./.gem.20250224-31420-bzbfq4 sitelibdir\=./.gem.20250224-31420-bzbfq4 install
+/usr/bin/install -c -m 0755 parser.so ./.gem.20250224-31420-bzbfq4/json/ext
+
+current directory: /home/mathys/projects/mathysgrapotte.github.io/vendor/bundle/ruby/3.4.0+1/gems/json-2.10.1/ext/json/ext/parser
+make DESTDIR\= sitearchdir\=./.gem.20250224-31420-bzbfq4 sitelibdir\=./.gem.20250224-31420-bzbfq4 clean

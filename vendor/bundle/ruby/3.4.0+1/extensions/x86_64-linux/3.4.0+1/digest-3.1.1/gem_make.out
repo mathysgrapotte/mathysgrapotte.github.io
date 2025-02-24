@@ -1,0 +1,22 @@
+current directory: /home/mathys/projects/mathysgrapotte.github.io/vendor/bundle/ruby/3.4.0+1/gems/digest-3.1.1/ext/digest/sha2
+/home/mathys/.rbenv/versions/3.4.0/bin/ruby extconf.rb
+checking for CommonCrypto/CommonDigest.h... no
+checking for u_int8_t... yes
+checking for sys/cdefs.h... yes
+creating Makefile
+
+current directory: /home/mathys/projects/mathysgrapotte.github.io/vendor/bundle/ruby/3.4.0+1/gems/digest-3.1.1/ext/digest/sha2
+make DESTDIR\= sitearchdir\=./.gem.20250224-31420-qkll5w sitelibdir\=./.gem.20250224-31420-qkll5w clean
+
+current directory: /home/mathys/projects/mathysgrapotte.github.io/vendor/bundle/ruby/3.4.0+1/gems/digest-3.1.1/ext/digest/sha2
+make DESTDIR\= sitearchdir\=./.gem.20250224-31420-qkll5w sitelibdir\=./.gem.20250224-31420-qkll5w
+compiling sha2init.c
+compiling sha2.c
+linking shared-object digest/sha2.so
+
+current directory: /home/mathys/projects/mathysgrapotte.github.io/vendor/bundle/ruby/3.4.0+1/gems/digest-3.1.1/ext/digest/sha2
+make DESTDIR\= sitearchdir\=./.gem.20250224-31420-qkll5w sitelibdir\=./.gem.20250224-31420-qkll5w install
+/usr/bin/install -c -m 0755 sha2.so ./.gem.20250224-31420-qkll5w/digest
+
+current directory: /home/mathys/projects/mathysgrapotte.github.io/vendor/bundle/ruby/3.4.0+1/gems/digest-3.1.1/ext/digest/sha2
+make DESTDIR\= sitearchdir\=./.gem.20250224-31420-qkll5w sitelibdir\=./.gem.20250224-31420-qkll5w clean

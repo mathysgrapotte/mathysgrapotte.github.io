@@ -5,19 +5,18 @@ entries:
   - title: info
     entries:
       - title: I am Mathys, a postdoctoral researcher at CRG, and this is my personal website.
-      - title: here, you will read about open science software, and making deep learning work in the bio world.
-      - title: linkedin
-        url: https://www.linkedin.com/in/mathys-grapotte-167004130/
+      - title: here, you will read about stimulus, a open source framework for training deep learning models in genomics.
       - title: github
         url: https://github.com/mathysgrapotte
 
-  - title: posts
-    entries:
-      - title: coming soon.
+#  - title: posts
+#    entries:
+#      - title: coming soon.
 
-#  - title: all posts
-#    post_list:
-#      limit: 5
-#      show_more: true
-#      show_more_text: See archive...
-#      show_more_url: archive.html
+  - title: stimulus related
+    post_list:
+      limit: 5
+      show_more: true
+      show_more_text: See archive...
+      show_more_url: archive.html
+      category: stimulus
