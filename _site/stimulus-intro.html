@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>Unifying Data and Models</title>
+
+  <link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="I like bio DL!" /><link rel="shortcut icon" type="image/x-icon" href="/logo.png" />
+  <link rel="stylesheet" href="/assets/css/main.css" />
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.css" integrity="sha384-OH8qNTHoMMVNVcKdKewlipV4SErXqccxxlg6HC9Cwjr5oZu2AdBej1TndeCirael" crossorigin="anonymous">
+
+</head>
+<body a="auto">
+    <main class="page-content" aria-label="Content">
+      <div class="w">
+        <a href="/">..</a><article>
+  <p class="post-meta">
+    <time datetime="2025-03-07 00:00:00 +0100">2025-03-07</time>
+  </p>
+  
+  <h1>Unifying Data and Models</h1>
+
+  <p>We became explorers of the hyper-parameter space.</p>
+
+<p>At first glance, hyper-parameters teached about the nature of the model; how does learning rate impact convergence speed? Should models be deeper ?</p>
+
+<p>The further one wander in this space, the more one realizes that hyper-parmaeters questions our assumptions about the data. If my deeper model learns better, what does it say about the complexity of the data?</p>
+
+<p>This realization flurished into questions:</p>
+<ul>
+  <li>How do hyper-parameters evolve when data changes?</li>
+  <li>Does this help us understand the nature of the data?</li>
+  <li>…</li>
+  <li>What if, the goal all along was the hyper-parameters themselves? Equations teach us about the world; more so than their outputs.</li>
+</ul>
+
+<p>One thing is clear to me; a model in a vacuum, without its training data, is incomplete. Like an answer to an unknown question or the output of an hidden equation.</p>
+
+<p>For this reason, we have built stimulus: a way to fuse data processing and model training in a single, unified, pipeline.</p>
+
+<h3 id="data-processing-hyper-space">Data processing hyper-space</h3>
+
+<p>Data processing define their own hyper-parameter space. Should images be rotated? how should the text be tokenized?</p>
+
+<p>As data distances itself from our understanding of the world, processing parametrisation increases in complexity. Which mapper should I use for my sequencing data? Which quality filter? how should I do peak calling? What would my background signal be?</p>
+
+<p>We found that most data processing, regardless of complexity, fall into three atomic steps:</p>
+<ol>
+  <li>split</li>
+  <li>transform</li>
+  <li>encode</li>
+</ol>
+
+<p>Split defines which subset of the data trains, and which subset of the data validates the model performance. If splitting is done right, it should carefully assess the ability of the model to generalize to unseen examples. I would even argue, that splitting, should let us understand <strong>which unseen examples</strong> the model is able to generalize to.</p>
+
+<p>Transformations define how the data is modified in its raw form. Peak-callers, data cleaning, down/up-sampling, etc. fall into this category. At this stage, the data is still human readable.</p>
+
+<p>Encode describes the final step. At this point, data converts into gpu-readable language. Most underestimate this step, although at this stage, data often undergoes the most drastic changes.</p>
+
+<p>For this reason, stimulus provides a way to define an exploration space for each of these steps. You will find mentions of splitters, encoders and transformers littered accross the documentation and the tool, it is essential that those basic building blocks are configurable and explorable.</p>
+
+<p>Ultimately; model parameters, processing parameters, and performance analytics paint a whole picture describing the data, it is a question alongside its answer, provided you know which question to ask.</p>
+
+
+</article>
+      </div>
+    </main>
+  </body>
+</html>
