@@ -41,5 +41,4 @@ Encode describes the final step. At this point, data converts into gpu-readable 
 
 For this reason, stimulus provides a way to define an exploration space for each of these steps. You will find mentions of splitters, encoders and transformers littered accross the documentation and the tool, it is essential that those basic building blocks are configurable and explorable.
 
-Ultimately; model parameters, processing parameters, and performance analytics paint a whole picture describing the data, it is a question alongside its answer, provided you know which question to ask.
-
+Ultimately; model parameters, processing parameters, and performance analytics paint a whole picture describing the data, it is an answer along side its question. 
